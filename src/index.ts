@@ -13,6 +13,7 @@ program
   .option('-o, --output <path>', 'Path to the output PDF file')
   .option('--base64 <string>', 'Base64 encoded HTML content')
   .option('--stdout', 'Output PDF to stdout (suppresses logs)')
+  .option('--save-copy <path>', 'Save a local copy when using --stdout')
   .option('--executable-path <path>', 'Path to Chrome executable (useful for low powered devices like Raspberry Pi)')
   .option('--no-sandbox', 'Disable sandbox (useful for low powered devices like Raspberry Pi)')
   .action(async (inputFile, options) => {
@@ -53,6 +54,14 @@ program
       });
 
       if (options.stdout && result) {
+        // If save-copy is specified, write to file first
+        if (options.saveCopy) {
+          const fs = require('fs');
+          const path = require('path');
+          const savePath = path.resolve(options.saveCopy);
+          fs.writeFileSync(savePath, result);
+        }
+        // Then output to stdout
         process.stdout.write(result);
       } else if (!options.stdout) {
         log(chalk.green('Conversion complete!'));

@@ -46,6 +46,9 @@ To save resources on devices like the Raspberry Pi, it is recommended to use the
 | Option | Description |
 | :--- | :--- |
 | `-o, --output <path>` | Path to the output PDF file. Defaults to input filename with `.pdf` extension. |
+| `--base64 <string>` | Base64 encoded HTML content (useful for n8n workflows). |
+| `--stdout` | Output PDF to stdout instead of file (useful for piping to other commands). |
+| `--save-copy <path>` | Save a local copy when using `--stdout` (useful for debugging n8n workflows). |
 | `--executable-path <path>` | Path to a specific Chrome/Chromium executable. |
 | `--no-sandbox` | Disables the sandbox. Required for some Linux environments and Docker. |
 | `-h, --help` | Display help information. |
