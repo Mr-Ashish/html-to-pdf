@@ -50,6 +50,12 @@ To save resources on devices like the Raspberry Pi, it is recommended to use the
 | `--no-sandbox` | Disables the sandbox. Required for some Linux environments and Docker. |
 | `-h, --help` | Display help information. |
 
+## n8n Integration
+
+This tool is optimized for n8n workflows. You can pass HTML via Base64 or Stdin and receive the binary PDF output.
+
+👉 **[Read the n8n Integration Guide](./N8N_GUIDE.md)**
+
 ## License
 
 ISC

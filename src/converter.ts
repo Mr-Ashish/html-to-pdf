@@ -6,18 +6,20 @@ interface ConvertOptions {
   output?: string;
   executablePath?: string;
   sandbox?: boolean;
+  htmlContent?: string;
 }
 
-export async function convertHtmlToPdf(inputPath: string, options: ConvertOptions) {
-  const resolvedInputPath = path.resolve(inputPath);
-  
-  if (!fs.existsSync(resolvedInputPath)) {
-    throw new Error(`Input file not found: ${resolvedInputPath}`);
-  }
+export async function convertHtmlToPdf(input: string | undefined, options: ConvertOptions): Promise<Buffer | void> {
+  let htmlContent = options.htmlContent;
+  let resolvedInputPath: string | undefined;
 
-  const outputPath = options.output 
-    ? path.resolve(options.output)
-    : resolvedInputPath.replace(/\.html?$/i, '.pdf');
+  // If input is a file path, read it or prepare to load it
+  if (input) {
+    resolvedInputPath = path.resolve(input);
+    if (!fs.existsSync(resolvedInputPath)) {
+      throw new Error(`Input file not found: ${resolvedInputPath}`);
+    }
+  }
 
   const launchOptions: any = {
     headless: true,
@@ -37,13 +39,21 @@ export async function convertHtmlToPdf(inputPath: string, options: ConvertOption
   try {
     const page = await browser.newPage();
     
-    // Load the file using the file:// protocol
-    await page.goto(`file://${resolvedInputPath}`, {
-      waitUntil: 'networkidle0' // Wait for all assets to load
-    });
+    if (htmlContent) {
+      // Load content directly
+      await page.setContent(htmlContent, {
+        waitUntil: 'networkidle0'
+      });
+    } else if (resolvedInputPath) {
+      // Load the file using the file:// protocol
+      await page.goto(`file://${resolvedInputPath}`, {
+        waitUntil: 'networkidle0'
+      });
+    } else {
+      throw new Error('No input file or HTML content provided');
+    }
 
-    await page.pdf({
-      path: outputPath,
+    const pdfOptions: any = {
       format: 'A4',
       printBackground: true,
       margin: {
@@ -52,7 +62,15 @@ export async function convertHtmlToPdf(inputPath: string, options: ConvertOption
         bottom: '10mm',
         left: '10mm'
       }
-    });
+    };
+
+    if (options.output) {
+      pdfOptions.path = path.resolve(options.output);
+      await page.pdf(pdfOptions);
+    } else {
+      // Return buffer if no output path specified
+      return Buffer.from(await page.pdf(pdfOptions));
+    }
     
   } finally {
     await browser.close();
