@@ -1,0 +1,46 @@
+{
+  "name": "htm-to-pdf",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "bin": {
+    "html-to-pdf": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "html",
+    "pdf",
+    "puppeteer",
+    "cli",
+    "converter",
+    "headless",
+    "raspberry-pi",
+    "serverless",
+    "low-power"
+  ],
+  "author": "Ashish Mishra",
+  "license": "ISC",
+  "description": "A lightweight CLI to convert HTML to PDF using Puppeteer. Optimized for low-powered devices.",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/repository.git"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "puppeteer": "^24.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
