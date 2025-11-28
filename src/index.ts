@@ -14,12 +14,13 @@ program
   .option('--base64 <string>', 'Base64 encoded HTML content')
   .option('--stdout', 'Output PDF to stdout (suppresses logs)')
   .option('--save-copy <path>', 'Save a local copy when using --stdout')
+  .option('--print-path', 'Print the output file path to stdout (useful for n8n workflows)')
   .option('--executable-path <path>', 'Path to Chrome executable (useful for low powered devices like Raspberry Pi)')
   .option('--no-sandbox', 'Disable sandbox (useful for low powered devices like Raspberry Pi)')
   .action(async (inputFile, options) => {
     try {
-      // Suppress logs if outputting to stdout to avoid corrupting the PDF binary
-      const log = options.stdout ? console.error : console.log;
+      // Suppress logs if outputting to stdout OR if print-path is enabled
+      const log = (options.stdout || options.printPath) ? () => {} : console.log;
 
       let htmlContent: string | undefined;
 
@@ -44,7 +45,22 @@ program
         process.exit(1);
       }
 
-      if (!options.stdout) {
+      // Generate timestamp-based filename in output directory if no output specified
+      if (!options.output && !options.stdout) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Ensure output directory exists
+        const outputDir = path.join(process.cwd(), 'output');
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+        
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('Z')[0];
+        options.output = path.join(outputDir, `output_${timestamp}.pdf`);
+      }
+
+      if (!options.stdout && !options.printPath) {
         log(chalk.blue(`Converting...`));
       }
 
@@ -63,6 +79,9 @@ program
         }
         // Then output to stdout
         process.stdout.write(result);
+      } else if (options.printPath && typeof result === 'string') {
+        // Print ONLY the file path to stdout (no other logs)
+        console.log(result);
       } else if (!options.stdout) {
         log(chalk.green('Conversion complete!'));
       }

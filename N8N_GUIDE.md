@@ -2,7 +2,42 @@
 
 This CLI is designed to work seamlessly with [n8n](https://n8n.io/) using the **Execute Command** node.
 
-## Method 1: Base64 Encoding (Recommended)
+## Recommended Method: File-Based with --print-path
+
+This is the most reliable method for Raspberry Pi and other environments.
+
+### Step 1: Encode HTML in n8n
+Use the built-in **Crypto** node:
+1.  Add a **Crypto** node.
+2.  **Action:** Select `Encoding`.
+3.  **Type:** Select `Base64`.
+4.  **Value:** `{{ $json.html }}`
+5.  **Property Name:** `base64Html`
+
+### Step 2: Execute Command - Generate PDF
+**Command:**
+```bash
+html-to-pdf --base64 "{{ $json.base64Html }}" --print-path --executable-path /usr/bin/chromium-browser --no-sandbox
+```
+
+This will:
+- Generate a PDF in the `output/` directory with a timestamp-based filename
+- Output ONLY the file path to stdout (e.g., `/path/to/output/output_2025-11-28_13-45-30.pdf`)
+
+### Step 3: Read Binary File
+Add a **Read Binary File** node:
+*   **File Path:** `{{ $json.stdout }}` (this contains the path from step 2)
+*   **Property Name:** `data`
+
+### Step 4: Use the PDF
+Now you have the PDF in `$binary.data` and can:
+*   **Write Binary File** → Save to another location
+*   **Google Drive** → Upload to Drive
+*   **Email** → Send as attachment
+
+---
+
+## Alternative Method 1: Base64 with stdout (Advanced)
 
 This method is the safest as it avoids any shell escaping issues with special characters in your HTML.
 
@@ -84,10 +119,8 @@ Add a **Code** node with this JavaScript:
 
 ```javascript
 // Get the stdout which contains the PDF binary
-const pdfData = items[0].json.stdout;
+let pdfData = items[0].json.stdout;
 
-// Convert to binary buffer
-const binaryData = Buffer.from(pdfData, 'binary');
 
 // Return as binary data
 return items.map(item => {
@@ -95,7 +128,7 @@ return items.map(item => {
     json: item.json,
     binary: {
       data: {
-        data: binaryData.toString('base64'),
+        data: base64Data,
         mimeType: 'application/pdf',
         fileName: 'output.pdf'
       }

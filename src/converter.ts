@@ -9,7 +9,7 @@ interface ConvertOptions {
   htmlContent?: string;
 }
 
-export async function convertHtmlToPdf(input: string | undefined, options: ConvertOptions): Promise<Buffer | void> {
+export async function convertHtmlToPdf(input: string | undefined, options: ConvertOptions): Promise<Buffer | string | void> {
   let htmlContent = options.htmlContent;
   let resolvedInputPath: string | undefined;
 
@@ -67,6 +67,7 @@ export async function convertHtmlToPdf(input: string | undefined, options: Conve
     if (options.output) {
       pdfOptions.path = path.resolve(options.output);
       await page.pdf(pdfOptions);
+      return pdfOptions.path; // Return the resolved path
     } else {
       // Return buffer if no output path specified
       return Buffer.from(await page.pdf(pdfOptions));
